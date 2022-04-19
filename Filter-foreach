@@ -1,0 +1,54 @@
+using Autodesk.Revit.Attributes;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LearnFilter
+{
+    [Transaction(TransactionMode.Manual)]
+
+    public class FilterWallDemol : IExternalCommand
+
+    {
+       
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            //界面交互的doc
+            UIDocument uiDoc = commandData.Application.ActiveUIDocument;
+            //实际的doc
+            Document doc = commandData.Application.ActiveUIDocument.Document;
+
+            ////【1】创建收集器
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ////【2】过滤获取墙元素
+            ////【2-1】快速过滤方法
+            collector.OfCategory(BuiltInCategory.OST_Walls).OfClass(typeof(Wall));//拿到Wall
+            List<Element> elementList = new List<Element>();
+            foreach (var element in collector)
+            //选择出特定的墙，把他添加到列表中
+            {
+                if (element.Name == "Wall - Timber Clad")//也可以不通过名字，可以通过属性来进行选择
+                {
+
+                    elementList.Add(element);
+                }
+            }
+           
+                //【6】高亮显示
+            var sel = uiDoc.Selection.GetElementIds();//选择集
+          //选出列表中得元素
+            foreach (var element in elementList)
+            {
+                sel.Add(element.Id);
+            }
+            //高亮
+            uiDoc.Selection.SetElementIds(sel);
+            return  Result.Succeeded;
+            
+        }
+    }
+} 
